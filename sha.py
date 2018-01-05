@@ -2,8 +2,15 @@
 #encoding=utf-8
 
 
+
+
+
+"""TODO : handle any file type, make tests """
+
+
 import struct
 import io
+import os, sys
 
 
 def bin_return(dec):
@@ -94,14 +101,7 @@ def left_rotate(n, b):
 
 def process_chunk(chunk, h0, h1, h2, h3, h4):
 
-
-
-
 	assert len(chunk) == 64
-
-
-
-
 
 	#The main loop has four rounds of 20 operations each. Each operation performs a non-linear function on three of theses 5 variables and then does shifting and adding similar to MD5 
 
@@ -133,11 +133,6 @@ def process_chunk(chunk, h0, h1, h2, h3, h4):
 		
 		w[i] = left_rotate(w[i-3] ^ w[i-8] ^ w[i-14] ^ w[i-16], 1)
 		
-
-
-
-
-
 
 	#SHA's set of non-linear functions is :
 
@@ -178,12 +173,6 @@ def process_chunk(chunk, h0, h1, h2, h3, h4):
 		   k = 0xCA62C1D6
 
 
-
-
-
-
-
-
 	#If t is the operation number  (from 0 to 79), Wt represents the tth sub-block of the expanded message , and <<<s represents a left circular shift of s bits, then the main loop looks like:
 
 	#For t = 0 to 79
@@ -214,7 +203,6 @@ def process_chunk(chunk, h0, h1, h2, h3, h4):
 
 
 
-
 def bitstring_to_bytes(s):
     v = int(s, 2)
     b = bytearray()
@@ -230,31 +218,26 @@ def bitstring_to_bytes(s):
 
 
 
+if len(sys.argv) >= 1:
 
+	#First of all we need to pad this message :
+	message_as_bitstring = message_pre_pro(sys.argv[1])
+else:
+	print("you need to pass the message to hash as a parameter")
+	#TODO: raise exception
 
-
-
-
-#First of all we need to pad the message :
-
-
-message_as_bitstring = message_pre_pro("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 
 message = bitstring_to_bytes(message_as_bitstring)
-
-
 
 
 #The main loop of the algorithm begins. It proccesses the message 512 bits at a time and continues for as many 512-bit blocks as are in the message  :
 
 #So we want to get rid of a chunk from our message once it has already been proccessed (TODO: explain properly), we use the "read" function from the io  package for that
 
-
 if isinstance(message, (bytes, bytearray)):
             unprocessed_data = io.BytesIO(message)
             
             
-
 
 if len(message)%64 == 0:  #just in case there is a padding error or whatever
 	nb_of_chunks = len(message)/64
@@ -272,7 +255,6 @@ else:
 
 
 
-
 #Let's print the digest as an hex string :
 
 digest = '%08x%08x%08x%08x%08x' % digest_values
@@ -282,3 +264,6 @@ print(digest)
 
 
 
+
+			
+			
