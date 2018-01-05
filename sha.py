@@ -3,14 +3,12 @@
 
 
 
-
-
-"""TODO : handle any file type, make tests """
+"""TODO : add tests """
 
 
 import struct
 import io
-import os, sys
+import os, sys, base64
 
 
 def bin_return(dec):
@@ -213,6 +211,12 @@ def bitstring_to_bytes(s):
 
 
 
+def bits(f):
+    bytes = (ord(b) for b in f.read())
+    for b in bytes:
+        for i in xrange(8):
+            yield (b >> i) & 1
+
 
 
 
@@ -220,14 +224,30 @@ def bitstring_to_bytes(s):
 
 if len(sys.argv) >= 1:
 
-	#First of all we need to pad this message :
-	message_as_bitstring = message_pre_pro(sys.argv[1])
+	if os.path.exists(sys.argv[1]):   #If the parameter is an existing file we hash it, otherwise we hash the string
+
+		bit_string=''
+
+		for b in bits(open(sys.argv[1], 'r')):       #read the bits of the file passed as arg one by one and concatenate them into a string
+			bit_string+= str(b)
+		
+
+		#First of all we need to pad this message :
+		padded_data = message_pad(bit_string)    #Important TODO: check why the final hash seems incorrect when handling files
+		
+	else:
+		padded_data = message_pre_pro(sys.argv[1])
+
+
+
 else:
 	print("you need to pass the message to hash as a parameter")
 	#TODO: raise exception
 
 
-message = bitstring_to_bytes(message_as_bitstring)
+message = bitstring_to_bytes(padded_data)
+
+
 
 
 #The main loop of the algorithm begins. It proccesses the message 512 bits at a time and continues for as many 512-bit blocks as are in the message  :
@@ -242,6 +262,7 @@ if isinstance(message, (bytes, bytearray)):
 if len(message)%64 == 0:  #just in case there is a padding error or whatever
 	nb_of_chunks = len(message)/64
 
+
 	#First the five variables are copied into different variables : a gets 0x67452301, b gets 0xEFCDAB89... (in the first round only) TODO: explain what are these variables, some kind of IV
 	digest_values = process_chunk(unprocessed_data.read(64), 0x67452301 , 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0)
           
@@ -251,7 +272,7 @@ if len(message)%64 == 0:  #just in case there is a padding error or whatever
 
 else:
 	print("the message isn't padded properly")
-	#TODO: apprendre à utiliser exceptions correctement	
+	#TODO: exceptions ?
 
 
 
